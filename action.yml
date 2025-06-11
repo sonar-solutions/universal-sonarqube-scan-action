@@ -36,3 +36,10 @@ runs:
         restore-keys: ${{ runner.os }}-sonar
     - run: bash ${{ github.action_path }}/src/run.sh
       shell: bash
+      env:
+        LANGUAGE: ${{ inputs.language }}
+        SONAR_TOKEN: ${{ inputs.sonar_token }}
+        PROJECT_KEY: ${{ inputs.project_key }}
+        HOST_URL: ${{ inputs.host_url }}
+        ORGANIZATION: ${{ inputs.organization }}
+        BUILD_COMMAND: ${{ inputs.build_command }}
