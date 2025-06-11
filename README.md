@@ -24,7 +24,7 @@ jobs:
         with:
           sonar_token: ${{ secrets.SONAR_TOKEN }}
           project_key: "your_project_key"
-          organization: "your_org"  # Optional for SonarQube Cloud
+          organization: "your_org"  # Optional, for SonarQube Cloud only
           host_url: "https://sonarcloud.io"
           language: "dotnet"  # or java-maven, java-gradle, generic
           build_command: "dotnet build"  # Optional
