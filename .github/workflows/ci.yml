@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-action:
+    name: Test Action
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Verify run.sh permissions
+        run: |
+          ls -la src/run.sh
+          chmod +x src/run.sh
+          git update-index --chmod=+x src/run.sh
+          
+      - name: Validate action.yml
+        run: |
+          if ! grep -q "name:" action.yml; then
+            echo "Error: action.yml is missing required fields"
+            exit 1
+          fi
+
+  # This job simulates using the action
+  test-dotnet:
+    name: Test with .NET project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+      
+      - name: Create test .NET project
+        run: |
+          mkdir -p test-project
+          cd test-project
+          dotnet new console
+          
+      # Use the local action for testing (using the relative path)
+      - name: Test local action (dry run)
+        uses: ./
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          # Use DRY_RUN to not actually send to SonarQube
+          DRY_RUN: "true"
+        with:
+          sonar_token: "dummy-token-for-testing"
+          project_key: "test-project"
+          language: "dotnet"
+          
+  # This is just a simulation test
+  test-java-maven:
+    name: Test with Java Maven project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      
+      # Use the local action for testing (using the relative path)
+      - name: Test local action (dry run)
+        uses: ./
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          # Use DRY_RUN to not actually send to SonarQube
+          DRY_RUN: "true"
+        with:
+          sonar_token: "dummy-token-for-testing"
+          project_key: "test-project"
+          language: "java-maven"

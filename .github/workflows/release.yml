@@ -1,0 +1,54 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g. v1, v1.0.0)'
+        required: true
+        default: 'v1'
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Create Release Tag
+        id: create_tag
+        run: |
+          echo "Creating tag ${{ github.event.inputs.version }}"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag -a ${{ github.event.inputs.version }} -m "Release ${{ github.event.inputs.version }}"
+          git push origin ${{ github.event.inputs.version }}
+          echo "TAG_NAME=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          name: Release ${{ env.TAG_NAME }}
+          body: |
+            # Universal SonarQube Scanner ${{ env.TAG_NAME }}
+            
+            Universal scanner for SonarQube and SonarCloud with support for:
+            - .NET projects
+            - Java with Maven
+            - Java with Gradle
+            - Generic/JS/TS projects
+            
+            ## Usage
+            
+            ```yaml
+            - uses: sonar-solutions/universal-sonarqube-scan-action@${{ env.TAG_NAME }}
+              with:
+                sonar_token: ${{ '${{' }} secrets.SONAR_TOKEN {{ '}}' }}
+                project_key: "your_project_key"
+                language: "dotnet"  # or java-maven, java-gradle, generic
+            ```
+            
+            See README.md for full documentation.
+          draft: false
+          prerelease: false

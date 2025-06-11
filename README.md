@@ -41,6 +41,24 @@ jobs:
 | `language`     | ✅       | Language (`dotnet`, `java-maven`, `java-gradle`, or `generic`) |
 | `build_command`| ❌       | Optional custom build command |
 
+## Versioning
+
+This action follows semantic versioning:
+
+- `@v1` - Latest stable v1.x.x release
+- `@v1.0.0` - Specific version
+- `@main` - Latest code from the main branch (may be unstable)
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
 ## License
 
 MIT

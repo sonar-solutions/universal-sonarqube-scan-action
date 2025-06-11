@@ -7,10 +7,14 @@ SONAR_TOKEN="${SONAR_TOKEN}"
 PROJECT_KEY="${PROJECT_KEY}"
 HOST_URL="${HOST_URL:-https://sonarcloud.io}"
 ORGANIZATION="${ORGANIZATION}"
+DRY_RUN="${DRY_RUN:-false}"
 
 echo "Detected language: $LANGUAGE"
 echo "Operating System: $(uname -s)"
 echo "Working directory: $(pwd)"
+if [[ "$DRY_RUN" == "true" ]]; then
+  echo "Running in DRY RUN mode - no analysis will be sent to SonarQube"
+fi
 
 PLATFORM="$(uname -s)"
 IS_WINDOWS=false
@@ -60,41 +64,67 @@ if [[ "$LANGUAGE" == "dotnet" ]]; then
       exit 1
     fi
     
-    # Begin analysis
-    echo "Beginning SonarQube analysis..."
-    dotnet sonarscanner begin /k:"$PROJECT_KEY" /d:sonar.token="$SONAR_TOKEN" /d:sonar.host.url="$HOST_URL" ${ORGANIZATION:+/o:$ORGANIZATION} || {
-      echo "Failed to begin SonarQube analysis. Trying alternative command format..."
-      dotnet-sonarscanner begin /k:"$PROJECT_KEY" /d:sonar.token="$SONAR_TOKEN" /d:sonar.host.url="$HOST_URL" ${ORGANIZATION:+/o:$ORGANIZATION}
-    }
-    
-    # Build the project
-    echo "Building .NET project with command: ${BUILD_CMD:-dotnet build}"
-    eval ${BUILD_CMD:-dotnet build} || {
-      echo "Build failed. Please check your project structure and build command."
-      exit 1
-    }
-    
-    # End analysis
-    echo "Ending SonarQube analysis..."
-    dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN" || {
-      echo "Failed to end SonarQube analysis. Trying alternative command format..."
-      dotnet-sonarscanner end /d:sonar.token="$SONAR_TOKEN"
-    }
+    # If it's a dry run, just build without SonarQube analysis
+    if [[ "$DRY_RUN" == "true" ]]; then
+      echo "[DRY RUN] Building .NET project with command: ${BUILD_CMD:-dotnet build}"
+      eval ${BUILD_CMD:-dotnet build} || {
+        echo "Build failed. Please check your project structure and build command."
+        exit 1
+      }
+    else
+      # Begin analysis
+      echo "Beginning SonarQube analysis..."
+      dotnet sonarscanner begin /k:"$PROJECT_KEY" /d:sonar.token="$SONAR_TOKEN" /d:sonar.host.url="$HOST_URL" ${ORGANIZATION:+/o:$ORGANIZATION} || {
+        echo "Failed to begin SonarQube analysis. Trying alternative command format..."
+        dotnet-sonarscanner begin /k:"$PROJECT_KEY" /d:sonar.token="$SONAR_TOKEN" /d:sonar.host.url="$HOST_URL" ${ORGANIZATION:+/o:$ORGANIZATION}
+      }
+      
+      # Build the project
+      echo "Building .NET project with command: ${BUILD_CMD:-dotnet build}"
+      eval ${BUILD_CMD:-dotnet build} || {
+        echo "Build failed. Please check your project structure and build command."
+        exit 1
+      }
+      
+      # End analysis
+      echo "Ending SonarQube analysis..."
+      dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN" || {
+        echo "Failed to end SonarQube analysis. Trying alternative command format..."
+        dotnet-sonarscanner end /d:sonar.token="$SONAR_TOKEN"
+      }
+    fi
 
 elif [[ "$LANGUAGE" == "java-maven" ]]; then
     echo "Running Java/Maven scanner"
-    mvn verify sonar:sonar -Dsonar.projectKey="$PROJECT_KEY" -Dsonar.host.url="$HOST_URL" -Dsonar.token="$SONAR_TOKEN" ${ORGANIZATION:+-Dsonar.organization=$ORGANIZATION}
+    
+    if [[ "$DRY_RUN" == "true" ]]; then
+      echo "[DRY RUN] Building Maven project"
+      mvn verify
+    else
+      mvn verify sonar:sonar -Dsonar.projectKey="$PROJECT_KEY" -Dsonar.host.url="$HOST_URL" -Dsonar.token="$SONAR_TOKEN" ${ORGANIZATION:+-Dsonar.organization=$ORGANIZATION}
+    fi
 
 elif [[ "$LANGUAGE" == "java-gradle" ]]; then
     echo "Running Java/Gradle scanner"
-    ./gradlew sonarqube -Dsonar.projectKey="$PROJECT_KEY" -Dsonar.host.url="$HOST_URL" -Dsonar.token="$SONAR_TOKEN" ${ORGANIZATION:+-Dsonar.organization=$ORGANIZATION}
+    
+    if [[ "$DRY_RUN" == "true" ]]; then
+      echo "[DRY RUN] Building Gradle project"
+      ./gradlew build
+    else
+      ./gradlew sonarqube -Dsonar.projectKey="$PROJECT_KEY" -Dsonar.host.url="$HOST_URL" -Dsonar.token="$SONAR_TOKEN" ${ORGANIZATION:+-Dsonar.organization=$ORGANIZATION}
+    fi
 
 else
     echo "Running generic scan using sonar-scanner CLI"
-    npm install -g sonarqube-scanner
-    sonar-scanner \
-      -Dsonar.projectKey="$PROJECT_KEY" \
-      -Dsonar.host.url="$HOST_URL" \
-      -Dsonar.token="$SONAR_TOKEN" \
-      ${ORGANIZATION:+-Dsonar.organization=$ORGANIZATION}
+    
+    if [[ "$DRY_RUN" == "true" ]]; then
+      echo "[DRY RUN] Skipping generic SonarQube scan"
+    else
+      npm install -g sonarqube-scanner
+      sonar-scanner \
+        -Dsonar.projectKey="$PROJECT_KEY" \
+        -Dsonar.host.url="$HOST_URL" \
+        -Dsonar.token="$SONAR_TOKEN" \
+        ${ORGANIZATION:+-Dsonar.organization=$ORGANIZATION}
+    fi
 fi
