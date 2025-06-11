@@ -49,28 +49,6 @@ This action follows semantic versioning:
 - `@v1.0.0` - Specific version
 - `@main` - Latest code from the main branch (may be unstable)
 
-## Creating Releases
-
-To create a new release of this action:
-
-1. You need to create a Personal Access Token (PAT) with `repo` scope:
-   - Go to your GitHub account → Settings → Developer settings → Personal access tokens → Tokens (classic)
-   - Generate a new token with `repo` scope
-   - Copy the token value
-
-2. Add the token as a repository secret:
-   - Go to your repository → Settings → Secrets and variables → Actions → New repository secret
-   - Name: `RELEASE_PAT`
-   - Value: Paste the token you copied
-   - Click "Add secret"
-
-3. Trigger the release workflow:
-   - Go to the "Actions" tab in your repository
-   - Select the "Create Release" workflow
-   - Click "Run workflow"
-   - Enter the version number (e.g., `v1`, `v1.0.0`)
-   - Click "Run workflow"
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
