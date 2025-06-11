@@ -38,11 +38,11 @@ if [[ "$LANGUAGE" == "dotnet" ]]; then
 
 elif [[ "$LANGUAGE" == "java-maven" ]]; then
     echo "Running Java/Maven scanner"
-    mvn verify sonar:sonar -Dsonar.projectKey="$PROJECT_KEY" -Dsonar.host.url="$HOST_URL" -Dsonar.login="$SONAR_TOKEN" ${ORGANIZATION:+-Dsonar.organization=$ORGANIZATION}
+    mvn verify sonar:sonar -Dsonar.projectKey="$PROJECT_KEY" -Dsonar.host.url="$HOST_URL" -Dsonar.token="$SONAR_TOKEN" ${ORGANIZATION:+-Dsonar.organization=$ORGANIZATION}
 
 elif [[ "$LANGUAGE" == "java-gradle" ]]; then
     echo "Running Java/Gradle scanner"
-    ./gradlew sonarqube -Dsonar.projectKey="$PROJECT_KEY" -Dsonar.host.url="$HOST_URL" -Dsonar.login="$SONAR_TOKEN" ${ORGANIZATION:+-Dsonar.organization=$ORGANIZATION}
+    ./gradlew sonarqube -Dsonar.projectKey="$PROJECT_KEY" -Dsonar.host.url="$HOST_URL" -Dsonar.token="$SONAR_TOKEN" ${ORGANIZATION:+-Dsonar.organization=$ORGANIZATION}
 
 else
     echo "Running generic scan using sonar-scanner CLI"
@@ -50,6 +50,6 @@ else
     sonar-scanner \
       -Dsonar.projectKey="$PROJECT_KEY" \
       -Dsonar.host.url="$HOST_URL" \
-      -Dsonar.login="$SONAR_TOKEN" \
+      -Dsonar.token="$SONAR_TOKEN" \
       ${ORGANIZATION:+-Dsonar.organization=$ORGANIZATION}
 fi
